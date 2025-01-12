@@ -213,9 +213,6 @@ if "user_input" not in st.session_state:
 st.title("📚 NoMore404")
 st.markdown("### Learn all the mentioned skills and complete the pending projects to successfully land your dream co-op job!")
 
-
-tabs = st.tabs(["🏠 Home", "💡 Skills", "🛠️ Projects", " 🤝 Resume Buddy", "Mental Health Check"])
-
 def main():
     st.sidebar.title("Navigation")
     
