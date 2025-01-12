@@ -1,5 +1,11 @@
 import streamlit as st
 import cohere
+from home import home_page
+from skills import skills_page
+from projects import projects_page
+from resume_buddy import resume_buddy_page
+from mental_health_check import mental_health_check_page
+
 
 COHERE_API_KEY = 'DpwtCmXovLiCOgKae0sa1TLxcw5PoZ7aTK9D9Egk'
 cohere_client = cohere.Client(COHERE_API_KEY)
@@ -208,197 +214,24 @@ st.title("📚 NoMore404")
 st.markdown("### Learn all the mentioned skills and complete the pending projects to successfully land your dream co-op job!")
 
 
-tabs = st.tabs(["🏠 Home", "💡 Skills", "🛠️ Projects", " 🤝 Resume Buddy"])
+tabs = st.tabs(["🏠 Home", "💡 Skills", "🛠️ Projects", " 🤝 Resume Buddy", "Mental Health Check"])
 
-
-with tabs[0]:
-    st.header("Welcome to Your Learning Dashboard, Gurmehak!")
-    st.markdown("Use this dashboard to track your skills progress, access learning resources, and manage your projects.")
-    st_lottie(completion_animation, height=300, key="welcome_animation")
-
-
-    # Display text area and pre-fill with session state
-    coop_descriptions = st.text_area(
-        "Copy paste your targeted co-op descriptions",
-        value="\n".join(st.session_state["user_input"]["descriptions"])
-    )
-
-
-    # Slider for time range
-    time_range = st.slider(
-        "Time Available (Months)",
-        2, 12,
-        value=st.session_state["user_input"]["time_range"]
-    )
-
-
-    # Save button to update session state
-    if st.button("Save"):
-        st.session_state["user_input"]["descriptions"] = (
-            coop_descriptions.strip().split("\n") if coop_descriptions.strip() else []
-        )
-        st.session_state["user_input"]["time_range"] = time_range
-        st.success("Co-op details updated successfully!")
-
-
-    # Hardcoded Inputs
-    months_left = time_range
-    completed_resources = 4  # Example value for completed skill resources
-    total_resources = 10  # Example value for total skill resources
-    completed_projects = 2  # Example value for completed projects
-    total_projects = 5  # Example value for total projects
-
-    # Calculations
-    time_needed_for_resources, time_needed_for_projects, daily_time_for_resources, daily_time_for_projects = calculate_time_allocation(
-        months_left, completed_resources, total_resources, completed_projects, total_projects
-    )
-
-    # Outputs
-    st.subheader("📈 Results")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.info(f"**Total time for resources:** {time_needed_for_resources} hours")
-        st.info(f"**Daily time for resources:** {daily_time_for_resources:.2f} hours/day")
-    with col2:
-        st.info(f"**Total time for projects:** {time_needed_for_projects} hours")
-        st.info(f"**Daily time for projects:** {daily_time_for_projects:.2f} hours/day")
-
-
-
-
-# Tab 2: Skills with Enhanced UI
-with tabs[1]:
-    st.header("💡 Skills Progress")
-    st.markdown("Track your learning progress and access resources to master new skills.")
-
-
-    skill_categories = {
-        "Programming": ["Python", "JavaScript", "SQL", "Docker"],
-        "Frontend": ["React", "CSS", "HTML"],
-        "Cloud": ["AWS"]
-    }
-
-
-    for category, category_skills in skill_categories.items():
-        st.subheader(f"📂 {category}")
-        col1, col2, col3, col4 = st.columns(4)
-        columns = [col1, col2, col3, col4]
-       
-        for idx, skill_name in enumerate(category_skills):
-            details = skills.get(skill_name, {"progress": 0, "resources": []})
-            with columns[idx % 4]:
-                st.markdown(
-                    f"""
-                    <div style="
-                        background-color: #f9f9f9;
-                        border-radius: 10px;
-                        padding: 15px;
-                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                        text-align: center;
-                        margin-bottom: 15px;
-                        transition: transform 0.3s;
-                        hover: scale(1.02);
-                    ">
-                        <h4 style="margin: 0;">{skill_name}</h4>
-                        <div style="
-                            margin: 10px 0;
-                            height: 10px;
-                            background-color: #e0e0e0;
-                            border-radius: 5px;
-                            position: relative;">
-                            <div style="
-                                width: {details['progress']}%;
-                                height: 100%;
-                                background-color: {'#4CAF50' if details['progress'] >= 70 else '#FFC107' if details['progress'] >= 50 else '#F44336'};
-                                border-radius: 5px;">
-                            </div>
-                        </div>
-                        <p style="margin: 5px 0;">{get_emoji(details['progress'])}</p>
-                        <p><strong>Resources:</strong></p>
-                        <ul style="list-style-type: none; padding: 0;">
-                        {"".join([
-                            f"<li><a href='{resource['url']}' target='_blank'>{resource['name']}</a> {'✔️' if resource['completed'] else '⏳'}</li>"
-                            for resource in details['resources']
-                        ])}
-                        </ul>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-        st.divider()
-
-
-# Tab 3: Projects (No changes)
-with tabs[2]:
-    st.header("🛠️ Project Tracking")
-    total_projects = len(st.session_state["projects"])
-    completed_projects = sum(p["status"] == "Complete" for p in st.session_state["projects"])
-    overall_progress = (completed_projects / total_projects) * 100 if total_projects > 0 else 0
-
-    st.write(f"### Overall Progress: {completed_projects}/{total_projects} Projects Completed")
-    st.progress(overall_progress / 100)
-
-    for project in st.session_state["projects"]:
-        col1, col2, col3 = st.columns([3, 2, 1])
-        with col1:
-            st.subheader(project["name"])
-            st.write(f"**Skills:** {', '.join(project['skills'])}")
-            st.write(f"**Relevant to:** {', '.join(project['companies'])}")
-        with col2:
-            st.write(f"**Status:** {project['status']}")
-        with col3:
-            if project["status"] == "Incomplete":
-                if st.button(f"Mark '{project['name']}' Complete", key=project["name"]):
-                    project["status"] = "Complete"
-            else:
-                st.write("🎉 Completed!")
-        # Add a description field for completed projects
-        if project["status"] == "Complete":
-        # Display a text area to edit the project description
-            description = st.text_area(
-            f"Add/Edit description for '{project['name']}':",
-            value=project.get("description", ""),  # Pre-fill if a description exists
-            height=100,
-            key=f"description_{project['name']}"
-        )
-
-        # Save the edited description to the project
-        if st.button(f"Save description for '{project['name']}'", key=f"save_{project['name']}"):
-            # Update the description in the project
-            project["description"] = description.strip()
-            st.success(f"Description for '{project['name']}' saved successfully!")
-
-        st.divider()
-
-
-
-with tabs[3]:  # The fourth tab (index 3)
-    st.header("Resume Buddy")
-    st.write("Optimize your projects for the co-op job description!")
-
-    # Input for job description
-    job_description = st.text_area("Enter the Co-op Job Description:", height=200)
+def main():
+    st.sidebar.title("Navigation")
     
-    # Button to find relevant projects
-    if st.button("Find Relevant Projects"):
-        if job_description.strip():
-            filtered_projects = filter_and_optimize_projects(job_description)
-            if filtered_projects:
-                st.success("Here are your relevant and optimized projects!")
-                for project in filtered_projects:
-                    st.subheader(project["name"])
-                    st.write(project["description"])
-            else:
-                st.warning("No relevant projects found. Try adding more skills or descriptions to your projects!")
-        else:
-            st.error("Please enter a job description.")
-# Ensure `st.session_state` is properly initialized
-if "user_input" not in st.session_state:
-    st.session_state["user_input"] = {
-        "descriptions": [],
-        "time_range": 2
-    }
+    # Create a sidebar or top menu for navigation
+    page = st.sidebar.radio("Select a Page", ["Home", "Skills", "Projects", "Resume Buddy", "Mental Health Check"])
 
+    if page == "Home":
+        home_page()  # Call home_page() from home.py
+    elif page == "Skills":
+        skills_page()  # Call skills_page() from skills.py
+    elif page == "Projects":
+        projects_page()  # Call projects_page() from projects.py
+    elif page == "Resume Buddy":
+        resume_buddy_page()  # Call resume_buddy_page() from resume_buddy.py
+    elif page == "Mental Health Check":
+        mental_health_check_page()
 
-
-
+if __name__ == "__main__":
+    main()
